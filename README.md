@@ -123,9 +123,9 @@ npm run check     # typecheck + lint + tests
 
 | File | Tests | Covers |
 |---|---:|---|
-| `test/routing.test.ts` | 25 | Priority banding, severity clamping, SLA, unit routing, escalation. Includes an exhaustive sweep of **every category × phase × severity** combination and a **monotonicity invariant** (higher severity never yields lower priority). |
-| `test/validate.test.ts` | 41 | Sanitisation, prompt-injection neutralisation, body-size caps, malformed JSON, unknown venues, boundary lengths, venue-catalogue integrity. |
-| `test/fallback.test.ts` | 30 | Offline classification per category, conflicting signals, intensifiers/de-escalators, multilingual input, location extraction, truncation. |
+| `test/routing.test.ts` | 26 | Priority banding, severity clamping, SLA, unit routing, escalation. Includes an exhaustive sweep of **every category × phase × severity** combination and a **monotonicity invariant** (higher severity never yields lower priority). |
+| `test/validate.test.ts` | 38 | Sanitisation, prompt-injection neutralisation, body-size caps, malformed JSON, unknown venues, boundary lengths, venue-catalogue integrity. |
+| `test/fallback.test.ts` | 32 | Offline classification per category, conflicting signals, intensifiers/de-escalators, multilingual input, location extraction, truncation. |
 | `test/triage.test.ts` | 35 | Model-envelope parsing, prompt construction, and **every failure path**: rejection, timeout, unparseable output, invented categories, out-of-range severity, empty actions, bare-string rejections. |
 | `test/worker.test.ts` | 27 | Full HTTP integration through the real `fetch` handler with a stubbed AI binding: routing, status codes, security headers, cache directives, rate limiting to a real 429. |
 
