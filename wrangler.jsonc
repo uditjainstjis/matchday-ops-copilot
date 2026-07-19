@@ -1,0 +1,27 @@
+{
+  // Cloudflare Workers configuration.
+  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "matchday-ops-copilot",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-15",
+
+  // Workers AI binding. No API keys are stored anywhere in this repo: the
+  // platform injects the `AI` binding at runtime, which is why there is no
+  // `.env` file and nothing secret to leak.
+  "ai": {
+    "binding": "AI"
+  },
+
+  // Static frontend. Assets are served directly from Cloudflare's edge cache
+  // so the Worker is never invoked for HTML/CSS/JS -- fewer invocations, lower
+  // latency, and a smaller attack surface for the dynamic code path.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

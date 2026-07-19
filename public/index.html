@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Matchday Ops Copilot — FIFA World Cup 2026 incident triage</title>
+    <meta
+      name="description"
+      content="AI incident triage for FIFA World Cup 2026 venue operations centres. Turns free-text steward reports into prioritised, routed, actionable incidents across all 16 host venues."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%9A%A8%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <!-- Skip link: first tabbable element, so keyboard and screen-reader users
+         can jump past the header straight to the report form. -->
+    <a class="skip-link" href="#report">Skip to incident entry</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <p class="brand">
+          <span class="brand-mark" aria-hidden="true">◤</span>
+          Matchday Ops Copilot
+        </p>
+        <p class="tagline">
+          Venue Operations Centre · FIFA World Cup 2026 · 48 teams · 104 matches · 16 host cities
+        </p>
+      </div>
+    </header>
+
+    <main class="wrap" id="main">
+      <h1>Incident triage</h1>
+      <p class="lede">
+        Type what a steward said over the radio. The copilot classifies it, scores its severity,
+        computes an operational priority from the match phase, and routes it to the responding units
+        with a target response time.
+      </p>
+
+      <div class="layout">
+        <section class="panel" aria-labelledby="entry-heading">
+          <h2 id="entry-heading">New report</h2>
+
+          <form id="report-form" novalidate>
+            <div class="field">
+              <label for="venue">Venue</label>
+              <select id="venue" name="venue" required>
+                <option value="">Loading venues…</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="match-phase">Match phase</label>
+              <select id="match-phase" name="matchPhase" required aria-describedby="phase-hint">
+                <option value="pre_match_ingress">Pre-match ingress</option>
+                <option value="first_half">First half</option>
+                <option value="half_time">Half time</option>
+                <option value="second_half">Second half</option>
+                <option value="full_time_egress">Full-time egress</option>
+                <option value="non_match_day">Non-match day</option>
+              </select>
+              <p class="hint" id="phase-hint">
+                Ingress, half time and egress raise priority, because crowd density peaks then.
+              </p>
+            </div>
+
+            <div class="field">
+              <label for="report">Incident report</label>
+              <textarea
+                id="report"
+                name="report"
+                rows="5"
+                maxlength="1200"
+                required
+                aria-describedby="report-hint report-count report-error"
+                placeholder="e.g. crowd surge at gate 4, people pressed against the barrier"
+              ></textarea>
+              <p class="hint" id="report-hint">
+                Plain language is fine. English, Spanish and French are all understood.
+              </p>
+              <p class="hint" id="report-count">
+                <span id="char-count">0</span> of 1200 characters used
+              </p>
+              <!-- role="alert" is assertive: a validation failure must interrupt,
+                   because the operator is mid-task and may otherwise submit nothing. -->
+              <p class="error-text" id="report-error" role="alert"></p>
+            </div>
+
+            <button type="submit" id="submit-btn" class="primary">Triage report</button>
+
+            <fieldset class="samples">
+              <legend>Sample radio traffic</legend>
+              <p class="hint" id="sample-hint">Load a realistic report to see the copilot work.</p>
+              <ul class="sample-list" id="sample-list"></ul>
+            </fieldset>
+          </form>
+        </section>
+
+        <section class="panel" aria-labelledby="result-heading">
+          <h2 id="result-heading">Triage result</h2>
+
+          <!-- Status region: polite so it does not cut across the operator's own
+               typing, but always announced by a screen reader. -->
+          <p class="status" id="status" role="status" aria-live="polite">
+            No report triaged yet. Submit a report to see the classification.
+          </p>
+
+          <div id="result" class="result" hidden></div>
+        </section>
+      </div>
+
+      <section class="panel board-panel" aria-labelledby="board-heading">
+        <h2 id="board-heading">Incident board</h2>
+        <p class="hint" id="board-hint">
+          Incidents triaged in this session, highest priority first. Held in the browser only —
+          nothing is persisted server-side.
+        </p>
+        <div class="table-scroll" tabindex="0" role="region" aria-labelledby="board-heading">
+          <table id="board" aria-describedby="board-hint">
+            <caption class="visually-hidden">
+              Triaged incidents, sorted by priority then time received
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Priority</th>
+                <th scope="col">ID</th>
+                <th scope="col">Category</th>
+                <th scope="col">Location</th>
+                <th scope="col">Primary unit</th>
+                <th scope="col">SLA</th>
+                <th scope="col">Engine</th>
+              </tr>
+            </thead>
+            <tbody id="board-body">
+              <tr id="board-empty">
+                <td colspan="7" class="empty">No incidents yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="how-heading">
+        <h2 id="how-heading">How the decision is made</h2>
+        <ol class="how-list">
+          <li>
+            <strong>Generative AI reads the text.</strong> Llama 4 Scout on Cloudflare Workers AI
+            extracts a category, a 1–5 severity, a one-line summary and recommended actions,
+            constrained to a JSON schema.
+          </li>
+          <li>
+            <strong>Deterministic policy decides the consequences.</strong> Priority, target response
+            time and which units are dispatched are computed by audited pure functions — never by the
+            model. Identical inputs always produce identical dispatch.
+          </li>
+          <li>
+            <strong>It degrades loudly, not silently.</strong> If the model is slow, unavailable or
+            returns anything off-schema, an offline keyword classifier answers instead and the result
+            is labelled <em>Degraded — offline classifier</em>.
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>
+          Built for PromptWars Challenge 4 — Smart Stadiums &amp; Tournament Operations. Runs entirely
+          on Cloudflare Workers with Workers AI. No incident data is stored.
+        </p>
+      </div>
+    </footer>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
