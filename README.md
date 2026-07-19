@@ -204,9 +204,12 @@ dark room, with a screen reader.
 
 ## Efficiency
 
-- **Static assets never invoke the Worker.** Served from Cloudflare's edge cache
-  via the assets binding — fewer invocations, lower latency, smaller dynamic
-  attack surface.
+- **CSS and JS never invoke the Worker.** They are served straight from
+  Cloudflare's edge cache via the assets binding — fewer invocations, lower
+  latency, smaller dynamic attack surface. The HTML document is deliberately the
+  one exception (`run_worker_first`), because Content-Security-Policy is a
+  document-level header and must be attached by the Worker: full security
+  benefit for one invocation per page load rather than one per asset.
 - **`/api/venues` is aggressively cached** (`max-age=3600, s-maxage=86400`) and
   returns venues *plus* both controlled vocabularies in **one round trip**
   instead of three. It is effectively free after first load.

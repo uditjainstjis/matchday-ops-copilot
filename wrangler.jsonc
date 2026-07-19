@@ -13,12 +13,21 @@
     "binding": "AI"
   },
 
-  // Static frontend. Assets are served directly from Cloudflare's edge cache
-  // so the Worker is never invoked for HTML/CSS/JS -- fewer invocations, lower
-  // latency, and a smaller attack surface for the dynamic code path.
+  // Static frontend.
+  //
+  // CSS and JS are served straight from Cloudflare's edge cache without ever
+  // invoking the Worker -- fewer invocations, lower latency, smaller dynamic
+  // attack surface.
+  //
+  // The HTML document is the one exception: `run_worker_first` routes it
+  // through the Worker so that `withSecurityHeaders` can attach the
+  // Content-Security-Policy. CSP is a document-level header, so this buys the
+  // full security benefit at the cost of exactly one Worker invocation per page
+  // load, rather than one per asset.
   "assets": {
     "directory": "./public",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": ["/", "/index.html"]
   },
 
   "observability": {
